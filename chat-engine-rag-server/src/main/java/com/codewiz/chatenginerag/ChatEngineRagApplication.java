@@ -1,8 +1,8 @@
 package com.codewiz.chatenginerag;
 
-import groovy.util.logging.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
@@ -23,10 +23,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @SpringBootApplication
+@RequiredArgsConstructor
 @Slf4j
 public class ChatEngineRagApplication {
 
-	private static final Logger log = LoggerFactory.getLogger(ChatEngineRagApplication.class);
+	//private static final Logger log = LoggerFactory.getLogger(ChatEngineRagApplication.class);
 
 	public static void main(String[] args) {
 		SpringApplication.run(ChatEngineRagApplication.class, args);
@@ -40,13 +41,16 @@ public class ChatEngineRagApplication {
 	)
 	{
 		return args -> {
+			log.info("directoryPath :"+directoryPath);
 			Path directory = Paths.get(directoryPath);
 			try(var paths = Files.list(directory)){
 				paths.filter(Files::isRegularFile)
 						.forEach(path -> {
                             try {
 								String fileName = path.getFileName().toString();
-								String sql = "SELECT count(*) FROM vector_store WHERE metadata->>'file_name' = ?";
+								log.info("fileName :"+fileName);
+								//String sql = "SELECT count(*) FROM vector_store WHERE metadata->>'file_name' = ?";
+								String sql = "SELECT count(*) FROM vector_store WHERE 'file_name' = ?";
 								Integer count = jdbcTemplate.queryForObject(sql, new Object[]{fileName}, Integer.class);
 								if(count == 0) {
 									Resource resource = new UrlResource(path.toUri());
