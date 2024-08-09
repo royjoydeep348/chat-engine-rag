@@ -3,6 +3,7 @@ package com.codewiz.chatenginerag;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
@@ -21,6 +22,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @SpringBootApplication
 @RequiredArgsConstructor
@@ -50,8 +52,10 @@ public class ChatEngineRagApplication {
 								String fileName = path.getFileName().toString();
 								log.info("fileName :"+fileName);
 								//String sql = "SELECT count(*) FROM vector_store WHERE metadata->>'file_name' = ?";
-								String sql = "SELECT count(*) FROM vector_store WHERE 'file_name' = ?";
-								Integer count = jdbcTemplate.queryForObject(sql, new Object[]{fileName}, Integer.class);
+								String sql = "SELECT count(*) FROM vector_store";
+								Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+								//String sql = "SELECT count(*) FROM vector_store WHERE 'file_name' = ?";
+								//Integer count = jdbcTemplate.queryForObject(sql, new Object[]{fileName}, Integer.class);
 								if(count == 0) {
 									Resource resource = new UrlResource(path.toUri());
 									log.info("Reading PDF: {}", resource.getFilename());
@@ -67,8 +71,11 @@ public class ChatEngineRagApplication {
 
 									var textSplitter = new TokenTextSplitter();
 									var docs = textSplitter.apply(pdfReader.get());
+									List<Document> docsList = docs;
 									log.info("Loading PDF: {}", resource.getFilename());
-									vectorStore.accept(docs);
+									//vectorStore.accept(docs);
+									docsList.forEach(doc -> log.debug("Document: {}", doc));
+									vectorStore.add(docsList);
 									log.info("Loaded PDF complete: {}", resource.getFilename());
 									int endTime = (int) System.currentTimeMillis();
 									log.info("Time taken to load PDF: {} ms", endTime - startTime);
